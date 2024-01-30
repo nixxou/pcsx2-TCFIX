@@ -160,6 +160,8 @@ namespace usb_lightgun
 
 		void AutoConfigure();
 
+		int fix_tc = -1;
+
 		std::tuple<s16, s16> CalculatePosition();
 
 		// 0..1, not -1..1.
@@ -341,9 +343,12 @@ namespace usb_lightgun
 
 	void GunCon2State::AutoConfigure()
 	{
+
 		const std::string serial = VMManager::GetDiscSerial();
+
 		for (const GameConfig& gc : s_game_config)
 		{
+
 			if (serial != gc.serial)
 				continue;
 
@@ -366,10 +371,172 @@ namespace usb_lightgun
 
 	std::tuple<s16, s16> GunCon2State::CalculatePosition()
 	{
+
+		if (fix_tc == -1)
+		{
+			//Console.WriteLn(fmt::format("TIMECRISIS2 {}", fix_tc));
+			fix_tc = 0;
+			const std::string serial = VMManager::GetDiscSerial();
+			if (serial == "SLUS-20219")
+				fix_tc = 1; //Time Crisis 2 US
+			if (serial == "SCES-50300")
+				fix_tc = 2; //Time Crisis 2 EU
+			if (serial == "SCES-51844")
+				fix_tc = 3; //TC 3 EU
+			if (serial == "SLUS-20645")
+				fix_tc = 4; //Time Crisis 3 US
+		}
+
+		//Console.WriteLn(fmt::format("TIMECRISIS2 {}",fix_tc));
 		float pointer_x, pointer_y;
 		const auto& [window_x, window_y] =
 			(has_relative_binds) ? GetAbsolutePositionFromRelativeAxes() : InputManager::GetPointerAbsolutePosition(0);
+
+
 		GSTranslateWindowToDisplayCoordinates(window_x, window_y, &pointer_x, &pointer_y);
+
+		float pointer_x2 = pointer_x;
+		float pointer_y2 = pointer_y;
+
+		if (fix_tc > 0 && EmuConfig.CurrentAspectRatio == AspectRatioType::R16_9)
+		{
+			if (fix_tc == 1)
+			{
+				if (port == 0)
+				{
+					float min = 0.035;
+					float max = 0.9035;
+
+					pointer_x = (pointer_x * (max - min)) + min;
+
+					min = 0.25;
+					max = 0.69;
+
+					pointer_y = (pointer_y * (max - min)) + min;
+					if (pointer_y > 0 && pointer_y < 1)
+						pointer_y += ((-0.04 * (pointer_y2 * pointer_y2)) + (0.04 * pointer_y2)) * 2.7;
+				}
+				if (port == 1)
+				{
+					float min = 0.093;
+					float max = 0.970;
+
+					pointer_x = (pointer_x * (max - min)) + min;
+
+					min = 0.247;
+					max = 0.690;
+
+					pointer_y = (pointer_y * (max - min)) + min;
+					if (pointer_y > 0 && pointer_y < 1)
+						pointer_y += ((-0.04 * (pointer_y2 * pointer_y2)) + (0.04 * pointer_y2)) * 2.7;
+				}
+			}
+			if (fix_tc == 2)
+			{
+				if (port == 0)
+				{
+					float min = 0.02798462;
+					float max = 0.90;
+					pointer_x = (pointer_x * (max - min)) + min;
+
+					min = 0.25;
+					max = 0.6950202;
+
+					pointer_y = (pointer_y * (max - min)) + min;
+					if (pointer_y > 0 && pointer_y < 1)
+						pointer_y += ((-0.04 * (pointer_y2 * pointer_y2)) + (0.04 * pointer_y2)) * 2.7;
+				}
+				if (port == 1)
+				{
+					float min = 0.093;
+					float max = 0.970;
+
+					pointer_x = (pointer_x * (max - min)) + min;
+
+					min = 0.247;
+					max = 0.690;
+
+					pointer_y = (pointer_y * (max - min)) + min;
+					if (pointer_y > 0 && pointer_y < 1)
+						pointer_y += ((-0.04 * (pointer_y2 * pointer_y2)) + (0.04 * pointer_y2)) * 2.7;
+				}
+			}
+
+			if (fix_tc == 3)
+			{
+				if (port == 0)
+				{
+					float min = 0.035;
+					float max = 0.9035;
+
+					pointer_x = (pointer_x * (max - min)) + min;
+
+					min = 0.247;
+					max = 0.690;
+
+					pointer_y = (pointer_y * (max - min)) + min;
+					if (pointer_y > 0 && pointer_y < 1)
+						pointer_y += ((-0.04 * (pointer_y2 * pointer_y2)) + (0.04 * pointer_y2)) * 3.0;
+					//if (pointer_y > 0 && pointer_y < 1) pointer_y += ((-0.04 * (pointer_y2 * pointer_y2)) + (0.04 * pointer_y2)) * 3.1;
+				}
+				if (port == 1)
+				{
+
+					float min = 0.095;
+					float max = 0.97;
+
+					pointer_x = (pointer_x * (max - min)) + min;
+
+					min = 0.247;
+					max = 0.690;
+
+					pointer_y = (pointer_y * (max - min)) + min;
+					if (pointer_y > 0 && pointer_y < 1)
+						pointer_y += ((-0.04 * (pointer_y2 * pointer_y2)) + (0.04 * pointer_y2)) * 3.0;
+					//if (pointer_y > 0 && pointer_y < 1) pointer_y += ((-0.04 * (pointer_y2 * pointer_y2)) + (0.04 * pointer_y2)) * 2.1;
+				}
+			}
+
+			if (fix_tc == 4)
+			{
+				if (port == 0)
+				{
+					float min = 0.035;
+					float max = 0.9035;
+
+					pointer_x = (pointer_x * (max - min)) + min;
+
+					min = 0.247;
+					max = 0.690;
+
+					pointer_y = (pointer_y * (max - min)) + min;
+					//if (pointer_y > 0 && pointer_y < 1) pointer_y += ((-0.04 * (pointer_y2 * pointer_y2)) + (0.04 * pointer_y2)) * 2.7;
+					if (pointer_y > 0 && pointer_y < 1)
+						pointer_y += ((-0.04 * (pointer_y2 * pointer_y2)) + (0.04 * pointer_y2)) * 3.1;
+				}
+				if (port == 1)
+				{
+
+					float min = 0.095;
+					float max = 0.97;
+
+					pointer_x = (pointer_x * (max - min)) + min;
+
+					min = 0.247;
+					max = 0.690;
+
+					pointer_y = (pointer_y * (max - min)) + min;
+					//if (pointer_y > 0 && pointer_y < 1) pointer_y += ((-0.04 * (pointer_y2 * pointer_y2)) + (0.04 * pointer_y2)) * 2.7;
+					if (pointer_y > 0 && pointer_y < 1)
+						pointer_y += ((-0.04 * (pointer_y2 * pointer_y2)) + (0.04 * pointer_y2)) * 3.1;
+				}
+			}
+
+			/*
+			if (port == 1)
+				Console.WriteLn(fmt::format("TIMECRISIS2 : DEBUG : {} {} {}", pointer_y, pointer_x2, port));
+				*/
+		}
 
 		s16 pos_x, pos_y;
 		if (pointer_x < 0.0f || pointer_y < 0.0f)
@@ -408,7 +575,6 @@ namespace usb_lightgun
 			pos_x = static_cast<s16>(std::max(x, 1));
 			pos_y = static_cast<s16>(std::max(y, 1));
 		}
-
 		return std::tie(pos_x, pos_y);
 	}
 
@@ -501,7 +667,9 @@ namespace usb_lightgun
 			// Strip the leading hash, if it's a CSS style colour.
 			const std::optional<u32> cursor_color_opt(
 				StringUtil::FromChars<u32>(cursor_color_str[0] == '#' ?
-					std::string_view(cursor_color_str).substr(1) : std::string_view(cursor_color_str), 16));
+											   std::string_view(cursor_color_str).substr(1) :
+											   std::string_view(cursor_color_str),
+					16));
 			if (cursor_color_opt.has_value())
 				cursor_color = cursor_color_opt.value();
 		}
@@ -509,9 +677,9 @@ namespace usb_lightgun
 		const s32 prev_pointer_index = s->GetSoftwarePointerIndex();
 
 		s->has_relative_binds = (USB::ConfigKeyExists(si, s->port, TypeName(), "RelativeLeft") ||
-			USB::ConfigKeyExists(si, s->port, TypeName(), "RelativeRight") ||
-			USB::ConfigKeyExists(si, s->port, TypeName(), "RelativeUp") ||
-			USB::ConfigKeyExists(si, s->port, TypeName(), "RelativeDown"));
+								 USB::ConfigKeyExists(si, s->port, TypeName(), "RelativeRight") ||
+								 USB::ConfigKeyExists(si, s->port, TypeName(), "RelativeUp") ||
+								 USB::ConfigKeyExists(si, s->port, TypeName(), "RelativeDown"));
 
 		const s32 new_pointer_index = s->GetSoftwarePointerIndex();
 
